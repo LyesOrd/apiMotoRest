@@ -57,8 +57,10 @@ class AppFixtures extends Fixture
             $concession->setPays($this->faker->countryCode());
             $concession->setSlogan($this->faker->sentence());
             $concession->setStatus(true);
-            $listConcession[] = $concession;
             $manager->persist($concession);
+
+            $listConcession[] = $concession;
+            
         }
         
 
@@ -75,7 +77,10 @@ class AppFixtures extends Fixture
             $moto->setTransmission($this->faker->word());
             $moto->setCouleur($this->faker->colorName());
             $moto->setPrix($this->faker->randomNumber(5, false));
+            $moto->setNote($this->faker->numberBetween(0,5));
             $moto->setStatus(true);
+
+            // on lie une moto à une concession dans la bdd
             $moto->setConcession($listConcession[array_rand($listConcession)]);
             
             $manager->persist($moto);

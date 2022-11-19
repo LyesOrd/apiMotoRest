@@ -6,10 +6,8 @@ use App\Repository\ConcessionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation\Groups;
 use Hateoas\Configuration\Annotation as Hateoas;
-
-
 
 /**
  * @Hateoas\Relation(
@@ -33,7 +31,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
  * * @Hateoas\Relation(
  *      "update",
  *      href = @Hateoas\Route(
- *          "deleteConcessions",
+ *          "updateConcessions",
  *          parameters = { "id" = "expr(object.getId())" },
  *      ),
  *      exclusion = @Hateoas\Exclusion(groups="getConcessions", excludeIf = "expr(not is_granted('ROLE_ADMIN'))"),

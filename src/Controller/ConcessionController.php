@@ -18,11 +18,15 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use OpenApi\Annotations as OA;
+
 
 class ConcessionController extends AbstractController
 {
     /**
-     * Cette méthode permet de récupérer l'ensemble des concessionnaires. 
+     * Récupère l'ensemble des concessionnaires.
+     * 
+     * @OA\Tag(name="ConcessionRoute")
      *
      * @param ConcessionRepository $concessionRepository
      * @param SerializerInterface $serializer
@@ -49,7 +53,9 @@ class ConcessionController extends AbstractController
 
 
     /**
-     * Cette méthode permet de récupérer une concession en particulier en fonction de son id. 
+     * Récupère une concession en particulier en fonction de son id.
+     * 
+     * @OA\Tag(name="ConcessionRoute")
      *
      * @param Concession $concession
      * @param SerializerInterface $serializer
@@ -64,10 +70,13 @@ class ConcessionController extends AbstractController
     }
 
      /**
-     * Cette méthode supprime une concession en fonction de son id. 
+     * Supprime une concession en fonction de son id.
+     * 
      * En cascade, les motos associés aux concessions seront elles aussi supprimées. 
-     * Et resynchronizer la base de données pour appliquer ces modifications. 
+     * resynchronizer la base de données pour appliquer ces modifications. 
      * avec : php bin/console doctrine:schema:update --force
+     * 
+     * @OA\Tag(name="ConcessionRoute")
      * 
      * @param Concession $concession
      * @param EntityManagerInterface $em
@@ -87,8 +96,22 @@ class ConcessionController extends AbstractController
     }
 
     /**
-     * Cette méthode permet de créer une nouvelle concession. Elle ne permet pas 
-     * d'associer directement des motos à cette concession. 
+     * Créer une nouvelle concession. 
+     * Elle ne permet pas d'associer directement des motos à cette concession.
+     * 
+     * @OA\Tag(name="ConcessionRoute")
+     * 
+     * @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *         example={
+     *             "nom": "Honda",
+     *              "pays": "JP",
+     *              "slogan": "Be fast !",
+     *              "status": true
+     *            }
+     *     )
+     * )
      * 
      * @param Request $request
      * @param SerializerInterface $serializer
@@ -96,6 +119,7 @@ class ConcessionController extends AbstractController
      * @param UrlGeneratorInterface $urlGenerator
      * @return JsonResponse
      */
+
     #[Route('/api/concession', name: 'createConcessions', methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer une nouvelle concession')]
     public function createConcession(Request $request, SerializerInterface $serializer,
@@ -115,15 +139,28 @@ class ConcessionController extends AbstractController
         $context = SerializationContext::create()->setGroups(["getConcessions"]);
 
         $jsonConcession = $serializer->serialize($concession, 'json', $context);
-        $location = $urlGenerator->generate('detailsConcession', ['id' => $concession->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        $location = $urlGenerator->generate('detailsConcessions', ['id' => $concession->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         return new JsonResponse($jsonConcession, Response::HTTP_CREATED, ["Location" => $location], true);	
     }
 
     /**
-     * Cette méthode permet de mettre à jour les données d'une concession. 
-     * Exemple de données :
+     * Met à jour les données d'une concession.
+     * 
+     * @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *         example={
+     *             "nom": "Honda",
+     *              "pays": "JP",
+     *              "slogan": "Be fast !",
+     *              "status": true
+     *            }
+     *     )
+     * )
      * 
      * Cette méthode ne permet pas d'associer des motos et des concessions.
+     * 
+     * @OA\Tag(name="ConcessionRoute")
      * 
      * @param Request $request
      * @param SerializerInterface $serializer

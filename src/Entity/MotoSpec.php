@@ -94,6 +94,9 @@ class MotoSpec
     #[Groups(["getMotos"])]
     private ?Concession $concession = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $note = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -239,6 +242,18 @@ class MotoSpec
     public function setConcession(?Concession $concession): self
     {
         $this->concession = $concession;
+
+        return $this;
+    }
+
+    public function getNote(): ?int
+    {
+        return $this->note;
+    }
+
+    public function setNote(?int $note): self
+    {
+        $this->note = $note;
 
         return $this;
     }

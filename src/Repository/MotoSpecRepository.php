@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\MotoSpec;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Validator\Constraints\LessThan;
 
 /**
  * @extends ServiceEntityRepository<MotoSpec>
@@ -47,6 +48,19 @@ class MotoSpecRepository extends ServiceEntityRepository
         $query->setFetchMode(MotoSpec::class, "concession", \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER);
         return $query->getResult();
     }
+
+    public function getMotosByColor($color){
+        return $this->findBy(['couleur' => $color]);
+    }
+
+    public function getMotosByTransmission($transmission){
+        return $this->findBy(['transmission' => $transmission]);
+    }
+
+    public function getMotosSpecByNote($note){
+        return $this->findBy(['note' => $note]);
+    }
+
 
 //    /**
 //     * @return MotoSpec[] Returns an array of MotoSpec objects

@@ -27,7 +27,7 @@ use OpenApi\Annotations as OA;
 class MotoController extends AbstractController
 {
     /**
-     * Cette méthode permet de récupérer l'ensemble des motos.
+     * Récupère l'ensemble des motos.
      * 
      * @OA\Response(
      *     response=200,
@@ -50,7 +50,7 @@ class MotoController extends AbstractController
      *     description="Le nombre d'éléments que l'on veut récupérer",
      *     @OA\Schema(type="int")
      * )
-     * @OA\Tag(name="default")
+     * @OA\Tag(name="MotoRoute")
      *
      * @param MotoSpecReposiitory $motoRepository
      * @param SerializerInterface $serializer
@@ -76,10 +76,112 @@ class MotoController extends AbstractController
         return new JsonResponse($jsonMotoList, Response::HTTP_OK, [], true);
     }
 
+    /**
+     * Récupère l'ensemble des motos d'une couleur spéciale
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Retourne la liste des motos avec une couleur spécifique"
+     * )
+     *
+     * @OA\Tag(name="MotoRoute")
+     *
+     * @param MotoSpecReposiitory $motoRepository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @return JsonResponse
+     */
+    #[Route('/api/motos/{color}', name: 'motos.getMotosSpecByColor', methods: ['GET'])]
+    public function getMotosSpecByColor(MotoSpecRepository $motoRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
+    {
+        $color = $request->get('color');
+
+        $idCache = "getMotosSpecByColor";
+
+        $jsonMotoList = $cache->get($idCache, function(ItemInterface $item) use ($motoRepository, $color, $serializer) {
+            $item->tag("motoCache");
+            $motoList = $motoRepository->getMotosByColor($color);
+            $context = SerializationContext::create()->setGroups(["getMotos"]);
+
+            return $serializer->serialize($motoList, 'json', $context);
+        });
+        
+        return new JsonResponse($jsonMotoList, Response::HTTP_OK, [], true);
+    }
 
     /**
-     * Cette méthode permet de récupérer une moto en particulier en fonction de son id. 
+     * Récupère l'ensemble des motos qui ont le même type de transmission
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Retourne la liste des motos avec le même type de transmission"
+     * )
      *
+     * @OA\Tag(name="MotoRoute")
+     *
+     * @param MotoSpecReposiitory $motoRepository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @return JsonResponse
+     */
+    #[Route('/api/motos/{transmission}', name: 'motos.getMotosSpecBytransmission', methods: ['GET'])]
+    public function getMotosSpecByTransmission(MotoSpecRepository $motoRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
+    {
+        $transmission = $request->get('transmission');
+
+        $idCache = "getMotosSpecByTransmission";
+
+        $jsonMotoList = $cache->get($idCache, function(ItemInterface $item) use ($motoRepository, $transmission, $serializer) {
+            $item->tag("motoCache");
+            $motoList = $motoRepository->getMotosByTransmission($transmission);
+            $context = SerializationContext::create()->setGroups(["getMotos"]);
+
+            return $serializer->serialize($motoList, 'json', $context);
+        });
+        
+        return new JsonResponse($jsonMotoList, Response::HTTP_OK, [], true);
+    }
+
+    /**
+     * Récupère l'ensemble des motos qui correspondent à une certaines note
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Retourne la liste des motos qui correspondent à la note choisie"
+     * )
+     *
+     * @OA\Tag(name="MotoRoute")
+     *
+     * @param MotoSpecReposiitory $motoRepository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @return JsonResponse
+     */
+    #[Route('/api/motos/{note}', name: 'motos.getMotosSpecByNote', methods: ['GET'])]
+    public function getMotosSpecByNote(MotoSpecRepository $motoRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
+    {
+        $note = $request->get('note');
+
+        $idCache = "getMotosSpecByNote";
+
+        $jsonMotoList = $cache->get($idCache, function(ItemInterface $item) use ($motoRepository, $note, $serializer) {
+            $item->tag("motoCache");
+            $motoList = $motoRepository->getMotosSpecByNote($note);
+            $context = SerializationContext::create()->setGroups(["getMotos"]);
+
+            return $serializer->serialize($motoList, 'json', $context);
+        });
+        
+        return new JsonResponse($jsonMotoList, Response::HTTP_OK, [], true);
+    }
+
+
+
+    /**
+     * Récupère une moto en particulier en fonction de son id. 
+     *
+     * @OA\Tag(name="MotoRoute")
+     * 
      * @param MotoSpec $moto
      * @param SerializerInterface $serializer
      * @return JsonResponse
@@ -94,19 +196,20 @@ class MotoController extends AbstractController
     }
 
     /**
-     * Cette méthode permet de supprimer une moto par rapport à son id. 
+     * Supprime une moto par rapport à son id. 
      *
+     * @OA\Tag(name="MotoRoute")
+     * 
      * @param MotoSpec $moto
      * @param EntityManagerInterface $em
      * @return JsonResponse 
      */
     #[Route('api/motos/{id}', name: 'deleteMotos', methods: ['DELETE'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer une moto')]
-    #[ParamConverter('moto', options: ['id' => 'idMoto'])]
+    #[ParamConverter('motos', options: ['id' => 'idMoto'])]
     public function deleteMotos(MotoSpec $moto, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse
     {
         $moto->setStatus(false);
-        $em->remove($moto);
         $em->flush();
 
         $cache->invalidateTags(["motoCache"]);
@@ -115,8 +218,45 @@ class MotoController extends AbstractController
 
 
     /**
-     * Cette méthode permet d'insérer une nouvelle moto. 
-     * Exemple de données : 
+     * Ajoute une nouvelle moto. 
+     * Exemple de données :
+     * {
+     *      "concession_id": 29,
+     *      "type": "Quatre-cylindre en ligne",
+     *      "refroidissement": "air",
+     *      "cylindree": 2,
+     *      "puissance": 650,
+     *      "puissance_au_litre": 210,
+     *      "reservoir": 35,
+     *      "poids": 300,
+     *      "transmission": "chaine",
+     *      "couleur": "Rouge nacre",
+     *      "prix": "10999",
+     *      "status": true
+     * 
+     * }
+     *
+     * @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *         example={
+     *             "concession_id": 29,
+     *              "type": "Quatre-cylindre en ligne",
+     *              "refroidissement": "air",
+     *              "cylindree": 2,
+     *              "puissance": 650,
+     *              "puissance_au_litre": 210,
+     *              "reservoir": 35,
+     *              "poids": 300,
+     *              "transmission": "chaine",
+     *              "couleur": "Rouge nacre",
+     *              "prix": "10999",
+     *              "status": true
+     *            }
+     *     )
+     * )
+     * @OA\Tag(name="MotoRoute")
+     * 
      * @param Request $request
      * @param SerializerInterface $serializer
      * @param EntityManagerInterface $em
@@ -149,14 +289,16 @@ class MotoController extends AbstractController
         $context = SerializationContext::create()->setGroups(['getMotos']);
         $jsonMotos = $serializer->serialize($motos, 'json', $context);
         
-        $location = $urlGeneratorInterface->generate('detailsMotos', ['idMoto' => $motos->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        $location = $urlGeneratorInterface->generate('detailsMotos', ['id' => $motos->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
 
         return new JsonResponse($jsonMotos, Response::HTTP_CREATED, ["Location" => $location], true);
     }
 
 
     /**
-     * Cette méthode permet de mettre à jour une moto en fonction de son id. 
+     * Met à jour une moto en fonction de son id.
+     * 
+     * @OA\Tag(name="MotoRoute")
      * 
      * @param Request $request
      * @param SerializerInterface $serializer

@@ -39,6 +39,10 @@
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "fakerphp/faker": "^1.20",
         "symfony/maker-bundle": "^1.48"
+        "symfony/runtime": "6.1.*",
+        "symfony/yaml": "6.1.*"
+    },
+    "require-dev": {
     },
     "config": {
         "allow-plugins": {
